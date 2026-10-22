@@ -1,7 +1,10 @@
 # Hi there, I'm Karthikeyan! 👋
 
 <!-- SUPERSET-STATS:START -->
-<!-- SUPERSET-STATS:END -->
+    [![Superset Rank](https://shields.io1608-blue?style=for-the-badge&logo=ai)](https://superset.sh)
+    [![Tokens Processed](https://shields.io4.8B-green?style=for-the-badge)](https://superset.sh)
+    [![Active Tracking](https://shields.io75d-orange?style=for-the-badge)](https://superset.sh)
+    <!-- SUPERSET-STATS:END -->
 
 <!--
 **th3-c0d3r/th3-c0d3r** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
