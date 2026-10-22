@@ -1,10 +1,13 @@
 # Hi there, I'm Karthikeyan! 👋
 
 <!-- SUPERSET-STATS:START -->
-[![Superset Rank](https://shields.io)](https://superset.sh)
-[![Tokens Processed](https://shields.io)](https://superset.sh)
-[![Active Tracking](https://shields.io)](https://superset.sh)
+<p align="left">
+  <a href="https://superset.sh"><img src="https://shields.io" alt="Superset Rank"></a>
+  <a href="https://superset.sh"><img src="https://shields.io" alt="Tokens Processed"></a>
+  <a href="https://superset.sh"><img src="https://shields.io" alt="Active Tracking"></a>
+</p>
 <!-- SUPERSET-STATS:END -->
+
 
 
 <!--
