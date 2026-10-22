@@ -1,87 +1,62 @@
-name: Update Superset Stats
-
+name: Update Superset Visuals
 on:
   schedule:
-    # Runs every day at midnight UTC
     - cron: '0 0 * * *'
-  workflow_dispatch: # Allows you to manually trigger it anytime
-
+  workflow_dispatch:
 jobs:
-  update-readme:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-
-      - name: Install Dependencies
+      - name: Dependencies
+        run: pip install requests
+      - name: Build Profile Components
         run: |
-          python -m pip install --upgrade pip
-          pip install beautifulsoup4 requests
+          cat << 'EOF' > parse.py
+          import requests, re
+          res = requests.get("https://superset.sh")
+          if res.status_code != 200: exit(1)
+          md = res.text
 
-      - name: Fetch Superset Data
-        run: |
-          cat << 'EOF' > fetch_stats.py
-          import requests
-          import re
+          # 1. Recreate Contribution Grid
+          days = int(re.search(r'last year:\s*(\d+)', md).group(1))
+          tokens = re.search(r'- Tokens:\s*(.*)', md).group(1).split()[0]
+          full_blocks = min(days // 4, 15)
+          empty_blocks = max(15 - full_blocks, 0)
+          grid_str = "🟧" * full_blocks + "⬛" * empty_blocks
+          grid_html = f"<code>{grid_str}</code> {tokens} Over {days} Active Days"
 
-          # Fetching the raw structured markdown metadata endpoint directly
-          url = "https://superset.sh/md/user/karthikeyan"
-          headers = {'User-Agent': 'Mozilla/5.0'}
-          response = requests.get(url, headers=headers)
+          # 2. Recreate Models Bar Layout
+          models_data = re.findall(r'\|\s*([a-zA-Z0-9_\-\.]+)\s*\|\s*([a-zA-Z0-9_\-\.]+)\s*\|\s*([0-9\.]+M|B)', md)
+          total_tokens = 4840.0
+          def to_mb(s):
+              v = float(re.sub(r'[MB]', '', s))
+              return v * 1000 if 'B' in s else v
+          
+          bar_html = "<h3>🤖 Model Share Breakdown</h3>\n<table>\n"
+          for prov, name, tok in models_data:
+              mb = to_mb(tok)
+              pct = (mb / total_tokens) * 100
+              width = max(int(pct * 2), 2)
+              bar = "🟩" * (width // 10) if width >= 10 else "🟩"
+              if pct > 0.5:
+                  bar_html += f"  <tr><td><b>{name}</b></td><td>{bar} {pct:.1f}% ({tok})</td></tr>\n"
+          bar_html += "</table>"
 
-          if response.status_code == 200:
-              content = response.text
-
-              # Robust Regex Extraction directly matching the text metadata elements
-              rank = re.search(r'- Rank:\s*(.*)', content).group(1).strip()
-              tier = re.search(r'- Tier:\s*(.*)', content).group(1).strip()
-              tokens = re.search(r'- Tokens:\s*(.*)', content).group(1).strip()
-              cost = re.search(r'- Cost:\s*(.*)', content).group(1).strip()
-              sessions = re.search(r'- Sessions:\s*(.*)', content).group(1).strip()
-              active_days = re.search(r'- Active days in the last year:\s*(.*)', content).group(1).strip()
-              busiest_day = re.search(r'- Busiest day:\s*(.*)', content).group(1).strip()
-
-              # Open README and swap the markdown blocks cleanly
-              with open("README.md", "r") as f:
-                  readme = f.read()
-
-              start_marker = "<!-- SUPERSET-STATS:START -->"
-              end_marker = "<!-- SUPERSET-STATS:END -->"
-
-              # Building a native GitHub markdown table that will never fail to render
-              table_template = f"""{start_marker}
-          ### 📊 Live Superset AI Telemetry
-
-          | Metric Category | Current Agent Value | Telemetry Context |
-          | :--- | :--- | :--- |
-          | **🏆 Leaderboard Rank** | `{rank}` | Tier: *{tier}* |
-          | **🤖 Volume Handled** | `{tokens}` | Across `{sessions}` active agent sessions |
-          | **💰 Compute Valuation** | `{cost}` | API-equivalent value consumed |
-          | **⏳ Operational Run** | `{active_days} active days` | Peak load: `{busiest_day}` |
-
-          *Last updated automatically via Superset Markdown endpoint API.*
-          {end_marker}"""
-
-              pattern = re.compile(rf"{start_marker}.*?{end_marker}", re.DOTALL)
-              updated_readme = pattern.sub(table_template, readme)
-
-              with open("README.md", "w") as f:
-                  f.write(updated_readme)
-              print("Markdown endpoints parsed and committed.")
-          else:
-              print(f"Failed to fetch telemetry document. Error code: {response.status_code}")
+          # 3. Inject back into README file safely
+          with open("README.md", "r") as f: content = f.read()
+          out = f"<!-- SUPERSET-STATS:START -->\n<h3>🔥 Superset Activity</h3>\n{grid_html}\n<br><br>\n{bar_html}\n<!-- SUPERSET-STATS:END -->"
+          updated = re.sub(r'<!-- SUPERSET-STATS:START -->.*?<!-- SUPERSET-STATS:END -->', out, content, flags=re.DOTALL)
+          with open("README.md", "w") as f: f.write(updated)
           EOF
-          python fetch_stats.py
-
-      - name: Commit and Push Changes
+          python parse.py
+      - name: Commit Back To Main
         run: |
           git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@://github.com"
+          git config --global user.email "actions@github.com"
           git add README.md
-          git diff-index --quiet HEAD || git commit -m "🤖 Auto-updated Superset metrics"
+          git diff-index --quiet HEAD || git commit -m "🤖 Synchronized Superset Grid & Models UI Layout"
           git push
