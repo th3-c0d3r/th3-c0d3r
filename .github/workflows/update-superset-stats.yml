@@ -8,51 +8,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
       - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-      - name: Dependencies
-        run: pip install requests
-      - name: Build Profile Components
-        run: |
-          cat << 'EOF' > parse.py
-          import requests, re
-          res = requests.get("https://superset.sh")
-          if res.status_code != 200: exit(1)
-          md = res.text
-
-          # 1. Recreate Contribution Grid
-          days = int(re.search(r'last year:\s*(\d+)', md).group(1))
-          tokens = re.search(r'- Tokens:\s*(.*)', md).group(1).split()[0]
-          full_blocks = min(days // 4, 15)
-          empty_blocks = max(15 - full_blocks, 0)
-          grid_str = "🟧" * full_blocks + "⬛" * empty_blocks
-          grid_html = f"<code>{grid_str}</code> {tokens} Over {days} Active Days"
-
-          # 2. Recreate Models Bar Layout
-          models_data = re.findall(r'\|\s*([a-zA-Z0-9_\-\.]+)\s*\|\s*([a-zA-Z0-9_\-\.]+)\s*\|\s*([0-9\.]+M|B)', md)
-          total_tokens = 4840.0
-          def to_mb(s):
-              v = float(re.sub(r'[MB]', '', s))
-              return v * 1000 if 'B' in s else v
           
-          bar_html = "<h3>🤖 Model Share Breakdown</h3>\n<table>\n"
-          for prov, name, tok in models_data:
-              mb = to_mb(tok)
-              pct = (mb / total_tokens) * 100
-              width = max(int(pct * 2), 2)
-              bar = "🟩" * (width // 10) if width >= 10 else "🟩"
-              if pct > 0.5:
-                  bar_html += f"  <tr><td><b>{name}</b></td><td>{bar} {pct:.1f}% ({tok})</td></tr>\n"
-          bar_html += "</table>"
-
-          # 3. Inject back into README file safely
-          with open("README.md", "r") as f: content = f.read()
-          out = f"<!-- SUPERSET-STATS:START -->\n<h3>🔥 Superset Activity</h3>\n{grid_html}\n<br><br>\n{bar_html}\n<!-- SUPERSET-STATS:END -->"
-          updated = re.sub(r'<!-- SUPERSET-STATS:START -->.*?<!-- SUPERSET-STATS:END -->', out, content, flags=re.DOTALL)
-          with open("README.md", "w") as f: f.write(updated)
-          EOF
-          python parse.py
+      - name: Install Requirements
+        run: pip install requests
+        
+      - name: Execute Script
+        run: python parse_superset.py
+        
       - name: Commit Back To Main
         run: |
           git config --global user.name "github-actions[bot]"
