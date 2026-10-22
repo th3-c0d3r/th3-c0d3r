@@ -27,53 +27,54 @@ jobs:
         run: |
           cat << 'EOF' > fetch_stats.py
           import requests
-          from bs4 import BeautifulSoup
           import re
 
-          url = "https://superset.sh"
-          headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+          # Fetching the raw structured markdown metadata endpoint directly
+          url = "https://superset.sh/md/user/karthikeyan"
+          headers = {'User-Agent': 'Mozilla/5.0'}
           response = requests.get(url, headers=headers)
 
           if response.status_code == 200:
-              soup = BeautifulSoup(response.text, 'html.parser')
-              text = soup.get_text()
+              content = response.text
 
-              # Fallback extraction defaults based on target positions
-              rank = "1608"
-              tokens = "4.8B"
-              days = "75d"
+              # Robust Regex Extraction directly matching the text metadata elements
+              rank = re.search(r'- Rank:\s*(.*)', content).group(1).strip()
+              tier = re.search(r'- Tier:\s*(.*)', content).group(1).strip()
+              tokens = re.search(r'- Tokens:\s*(.*)', content).group(1).strip()
+              cost = re.search(r'- Cost:\s*(.*)', content).group(1).strip()
+              sessions = re.search(r'- Sessions:\s*(.*)', content).group(1).strip()
+              active_days = re.search(r'- Active days in the last year:\s*(.*)', content).group(1).strip()
+              busiest_day = re.search(r'- Busiest day:\s*(.*)', content).group(1).strip()
 
-              # Try parsing exact metrics via regex if structure permits
-              rank_match = re.search(r'Rank\s+#(\d+)', text)
-              if rank_match: rank = rank_match.group(1)
-
-              tokens_match = re.search(r'Tokens\s+([\d\.]+B)', text)
-              if tokens_match: tokens = tokens_match.group(1)
-
-              tracking_match = re.search(r'Tracking\s+(\d+d)', text)
-              if tracking_match: days = tracking_match.group(1)
-
-              # Read README, look for the anchors, replace content
+              # Open README and swap the markdown blocks cleanly
               with open("README.md", "r") as f:
                   readme = f.read()
 
               start_marker = "<!-- SUPERSET-STATS:START -->"
               end_marker = "<!-- SUPERSET-STATS:END -->"
 
-              badge_template = f"""{start_marker}
-              [![Superset Rank](https://shields.io{rank}-blue?style=for-the-badge&logo=ai)](https://superset.sh)
-              [![Tokens Processed](https://shields.io{tokens}-green?style=for-the-badge)](https://superset.sh)
-              [![Active Tracking](https://shields.io{days}-orange?style=for-the-badge)](https://superset.sh)
-              {end_marker}"""
+              # Building a native GitHub markdown table that will never fail to render
+              table_template = f"""{start_marker}
+          ### 📊 Live Superset AI Telemetry
+
+          | Metric Category | Current Agent Value | Telemetry Context |
+          | :--- | :--- | :--- |
+          | **🏆 Leaderboard Rank** | `{rank}` | Tier: *{tier}* |
+          | **🤖 Volume Handled** | `{tokens}` | Across `{sessions}` active agent sessions |
+          | **💰 Compute Valuation** | `{cost}` | API-equivalent value consumed |
+          | **⏳ Operational Run** | `{active_days} active days` | Peak load: `{busiest_day}` |
+
+          *Last updated automatically via Superset Markdown endpoint API.*
+          {end_marker}"""
 
               pattern = re.compile(rf"{start_marker}.*?{end_marker}", re.DOTALL)
-              updated_readme = pattern.sub(badge_template, readme)
+              updated_readme = pattern.sub(table_template, readme)
 
               with open("README.md", "w") as f:
                   f.write(updated_readme)
-              print("Stats parsed and README updated successfully.")
+              print("Markdown endpoints parsed and committed.")
           else:
-              print(f"Failed to fetch data. Status code: {response.status_code}")
+              print(f"Failed to fetch telemetry document. Error code: {response.status_code}")
           EOF
           python fetch_stats.py
 
