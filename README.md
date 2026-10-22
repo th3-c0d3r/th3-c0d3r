@@ -1,16 +1,12 @@
 # Hi there, I'm Karthikeyan! 👋
 
 <!-- SUPERSET-STATS:START -->
-### 📊 Live Superset AI Telemetry
-
-| Metric Category | Current Agent Value | Telemetry Context |
-| :--- | :--- | :--- |
-| **🏆 Leaderboard Rank** | `#1608 of 2411` | Tier: *Button pusher* |
-| **🤖 Volume Handled** | `4.84B all time` | Across `545` active agent sessions |
-| **💰 Compute Valuation** | `$1534.27 API-equivalent` | API-equivalent value consumed |
-| **⏳ Operational Run** | `52 active days` | Peak load: `2026-10-14 at 443.4M tokens` |
-
-*Last updated automatically via Superset Markdown endpoint API.*
+<h3>🔥 Superset Activity</h3>
+<code>🟧🟧🟧🟧🟧🟧🟧🟧🟧🟧🟧🟧🟧⬛⬛</code> 4.84B all time Over 52 Active Days
+<br><br>
+<h3>🤖 Model Share Breakdown</h3>
+<table>
+</table>
 <!-- SUPERSET-STATS:END -->
 
 
