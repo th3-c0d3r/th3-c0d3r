@@ -1,4 +1,6 @@
-## Hi there 👋
+[![Superset Profile](https://shields.io)](https://superset.sh/karthikeyan)
+[![Superset Profile](https://github.com)](https://superset.sh/karthikeyan)
+
 
 <!--
 **th3-c0d3r/th3-c0d3r** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
