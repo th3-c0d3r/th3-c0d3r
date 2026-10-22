@@ -1,11 +1,15 @@
 # Hi there, I'm Karthikeyan! 👋
 
 <!-- SUPERSET-STATS:START -->
-<h3>🔥 Superset Activity</h3>
+### 🔥 Superset Activity
+
 <code>🟧🟧🟧🟧🟧🟧🟧🟧🟧🟧🟧🟧🟧⬛⬛</code> 4.84B all time Over 52 Active Days
-<br><br>
+<br>
 <h3>🤖 Model Share Breakdown</h3>
 <table>
+</table>  <tr><td><b>claude-sonnet-5</b></td><td>🟩🟩🟩🟩🟩🟩🟩🟩🟩 59.1% (2.86B)</td></tr>
+  <tr><td><b>claude-haiku-5-5</b></td><td>🟩🟩🟩 23.3% (1.13B)</td></tr>
+  <tr><td><b>claude-sonnet-5-5</b></td><td>🟩 13.9% (670.6M)</td></tr>
 </table>
 <!-- SUPERSET-STATS:END -->
 
